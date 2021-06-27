@@ -9,36 +9,45 @@ import { Observable } from "rxjs";
 })
 export class AppComponent {
   projectStatuses = ["Stable", "Critical", "Finished"];
-  signupForm: FormGroup;
+  projectForm: FormGroup;
 
   constructor() {
-    this.signupForm = new FormGroup({
+    this.projectForm = new FormGroup({
       projectName: new FormControl(
         null,
-        [Validators.required],
-        this._forbiddenNames.bind(this)
+        [Validators.required, this._invalidProjectName.bind(this)],
+        this._asyncInvalidProjectName.bind(this)
       ),
       email: new FormControl(null, [Validators.required, Validators.email]),
-      projectStatus: new FormControl("Stable"),
+      projectStatus: new FormControl("Critical"),
     });
   }
 
   onSubmit() {
-    console.log(this.signupForm.value);
+    console.log(this.projectForm.value);
   }
 
-  private _forbiddenNames(
+  private _asyncInvalidProjectName(
     control: FormControl
   ): Promise<any> | Observable<any> {
     const promise = new Promise<any>((resolve, reject) => {
       setTimeout(() => {
-        if (control.value?.toUpperCase() === "TEST") {
-          resolve({ nameIsForbidden: true });
+        if (control.value?.toUpperCase() === "TEST2") {
+          resolve({ invalidProjectName: true });
         } else {
           resolve(null);
         }
-      }, 0);
+      }, 1000);
     });
+
     return promise;
+  }
+
+  private _invalidProjectName(control: FormControl): { [s: string]: boolean } {
+    if (control.value?.toUpperCase() === "TEST") {
+      return { invalidProjectName: true };
+    }
+
+    return null;
   }
 }
